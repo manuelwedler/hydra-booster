@@ -14,7 +14,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
-	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/manuelwedler/hydra-booster/metrics"
 	"github.com/multiformats/go-base32"
 	"github.com/whyrusleeping/timecache"
 	"go.opencensus.io/stats"

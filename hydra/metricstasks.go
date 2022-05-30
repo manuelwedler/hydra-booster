@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/ipfs/go-datastore/query"
-	"github.com/libp2p/hydra-booster/metrics"
-	"github.com/libp2p/hydra-booster/periodictasks"
+	"github.com/manuelwedler/hydra-booster/metrics"
+	"github.com/manuelwedler/hydra-booster/periodictasks"
 	"go.opencensus.io/stats"
 )
 

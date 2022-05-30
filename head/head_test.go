@@ -8,7 +8,7 @@ import (
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/sync"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
-	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/manuelwedler/hydra-booster/head/opts"
 )
 
 func TestSpawnHead(t *testing.T) { // TODO spawn a node to bootstrap from so we don't hit the public bootstrappers

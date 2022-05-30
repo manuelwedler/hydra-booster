@@ -24,8 +24,8 @@ import (
 	record "github.com/libp2p/go-libp2p-record"
 	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
-	"github.com/libp2p/hydra-booster/head/opts"
-	"github.com/libp2p/hydra-booster/version"
+	"github.com/manuelwedler/hydra-booster/head/opts"
+	"github.com/manuelwedler/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
 )
 

@@ -10,8 +10,8 @@ import (
 	"testing"
 	"time"
 
-	hytesting "github.com/libp2p/hydra-booster/testing"
-	"github.com/libp2p/hydra-booster/ui/opts"
+	hytesting "github.com/manuelwedler/hydra-booster/testing"
+	"github.com/manuelwedler/hydra-booster/ui/opts"
 )
 
 func newMockMetricsServeMux(t *testing.T, name string) (net.Listener, *http.ServeMux) {

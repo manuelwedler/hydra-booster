@@ -9,7 +9,7 @@ import (
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	kbucket "github.com/libp2p/go-libp2p-kbucket"
-	"github.com/libp2p/hydra-booster/idgen"
+	"github.com/manuelwedler/hydra-booster/idgen"
 	"github.com/multiformats/go-multiaddr"
 )
 

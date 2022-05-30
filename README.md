@@ -11,11 +11,11 @@
 </p>
 
 <p align="center">
-  <a href="https://travis-ci.com/libp2p/hydra-booster"><img src="https://travis-ci.com/libp2p/hydra-booster.svg?branch=master"></a>
-  <a href="https://codecov.io/gh/libp2p/hydra-booster"><img src="https://codecov.io/gh/libp2p/hydra-booster/branch/master/graph/badge.svg"></a>
-  <a href="https://goreportcard.com/report/github.com/libp2p/hydra-booster"><img src="https://goreportcard.com/badge/github.com/libp2p/hydra-booster" /></a>
+  <a href="https://travis-ci.com/manuelwedler/hydra-booster"><img src="https://travis-ci.com/manuelwedler/hydra-booster.svg?branch=master"></a>
+  <a href="https://codecov.io/gh/manuelwedler/hydra-booster"><img src="https://codecov.io/gh/manuelwedler/hydra-booster/branch/master/graph/badge.svg"></a>
+  <a href="https://goreportcard.com/report/github.com/manuelwedler/hydra-booster"><img src="https://goreportcard.com/badge/github.com/manuelwedler/hydra-booster" /></a>
   <a href="https://github.com/RichardLitt/standard-readme"><img src="https://img.shields.io/badge/readme%20style-standard-brightgreen.svg" /></a>
-  <a href="https://pkg.go.dev/github.com/libp2p/hydra-booster" title="go.dev reference"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" /></a>
+  <a href="https://pkg.go.dev/github.com/manuelwedler/hydra-booster" title="go.dev reference"><img src="https://img.shields.io/badge/go.dev-reference-007d9c?logo=go&logoColor=white" /></a>
   <a href=""><img src="https://img.shields.io/badge/golang-%3E%3D1.14.2-orange.svg" /></a>
   <br>
 </p>
@@ -30,10 +30,10 @@ A new type of DHT node designed to accelerate the Content Resolution & Content P
 
 ```
 [openssl support (lower CPU usage)]
-go get -tags=openssl github.com/libp2p/hydra-booster
+go get -tags=openssl github.com/manuelwedler/hydra-booster
 
 [standard (sub-optimal)]
-go get github.com/libp2p/hydra-booster
+go get github.com/manuelwedler/hydra-booster
 ```
 
 ## Usage
@@ -167,10 +167,10 @@ docker build -t hydra-booster .
 docker run hydra-booster
 
 # Commit new version
-docker commit -m="some commit message" <CONTAINER_ID> libp2p/hydra-booster
+docker commit -m="some commit message" <CONTAINER_ID> manuelwedler/hydra-booster
 
 # Push to docker hub (must be logged in, do docker login)
-docker push libp2p/hydra-booster
+docker push manuelwedler/hydra-booster
 ```
 
 ### Metrics collection with Prometheus

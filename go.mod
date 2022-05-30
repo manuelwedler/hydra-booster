@@ -1,4 +1,4 @@
-module github.com/libp2p/hydra-booster
+module github.com/manuelwedler/hydra-booster
 
 require (
 	contrib.go.opencensus.io/exporter/prometheus v0.2.0

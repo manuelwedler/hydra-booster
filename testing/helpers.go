@@ -5,8 +5,8 @@ import (
 	"fmt"
 
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/head"
-	"github.com/libp2p/hydra-booster/head/opts"
+	"github.com/manuelwedler/hydra-booster/head"
+	"github.com/manuelwedler/hydra-booster/head/opts"
 )
 
 // Defaults are the SpawnNode defaults

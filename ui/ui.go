@@ -7,8 +7,8 @@ import (
 
 	pmc "github.com/alanshaw/prom-metrics-client"
 	"github.com/dustin/go-humanize"
-	"github.com/libp2p/hydra-booster/metrics"
-	uiopts "github.com/libp2p/hydra-booster/ui/opts"
+	"github.com/manuelwedler/hydra-booster/metrics"
+	uiopts "github.com/manuelwedler/hydra-booster/ui/opts"
 	"go.opencensus.io/stats"
 )
 

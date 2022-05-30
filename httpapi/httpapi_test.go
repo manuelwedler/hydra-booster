@@ -14,9 +14,9 @@ import (
 	dsq "github.com/ipfs/go-datastore/query"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/hydra"
-	"github.com/libp2p/hydra-booster/idgen"
-	hytesting "github.com/libp2p/hydra-booster/testing"
+	"github.com/manuelwedler/hydra-booster/hydra"
+	"github.com/manuelwedler/hydra-booster/idgen"
+	hytesting "github.com/manuelwedler/hydra-booster/testing"
 )
 
 func TestHTTPAPIHeads(t *testing.T) {

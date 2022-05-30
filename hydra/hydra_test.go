@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/libp2p/go-libp2p-core/peer"
-	"github.com/libp2p/hydra-booster/utils"
+	"github.com/manuelwedler/hydra-booster/utils"
 	"github.com/multiformats/go-multiaddr"
 )
 

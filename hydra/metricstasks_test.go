@@ -10,9 +10,9 @@ import (
 
 	"github.com/axiomhq/hyperloglog"
 	"github.com/ipfs/go-datastore"
-	"github.com/libp2p/hydra-booster/head"
-	"github.com/libp2p/hydra-booster/head/opts"
-	"github.com/libp2p/hydra-booster/metrics"
+	"github.com/manuelwedler/hydra-booster/head"
+	"github.com/manuelwedler/hydra-booster/head/opts"
+	"github.com/manuelwedler/hydra-booster/metrics"
 	"github.com/multiformats/go-multiaddr"
 	"go.opencensus.io/stats/view"
 )

@@ -17,8 +17,8 @@ import (
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
-	"github.com/libp2p/hydra-booster/hydra"
-	"github.com/libp2p/hydra-booster/idgen"
+	"github.com/manuelwedler/hydra-booster/hydra"
+	"github.com/manuelwedler/hydra-booster/idgen"
 )
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
