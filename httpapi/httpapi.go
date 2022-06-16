@@ -6,17 +6,24 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/multiformats/go-multiaddr"
 
+	"github.com/gogo/protobuf/proto"
 	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
+
+	// ipns "github.com/ipfs/go-ipns"
+	pb "github.com/ipfs/go-ipns/pb"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	record "github.com/libp2p/go-libp2p-record"
+	recpb "github.com/libp2p/go-libp2p-record/pb"
 	"github.com/manuelwedler/hydra-booster/hydra"
 	"github.com/manuelwedler/hydra-booster/idgen"
 )
@@ -43,6 +50,7 @@ func NewRouter(hy *hydra.Hydra) *mux.Router {
 	mux.HandleFunc("/idgen/add", idgenAddHandler()).Methods("POST")
 	mux.HandleFunc("/idgen/remove", idgenRemoveHandler()).Methods("POST")
 	mux.HandleFunc("/swarm/peers", swarmPeersHandler(hy))
+	mux.HandleFunc("/ipns/list", ipnsEntries(hy))
 	return mux
 }
 
@@ -101,7 +109,7 @@ func recordFetchHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request
 	}
 }
 
-// "/records/list" Receive a record and fetch it from the network, if available
+// "/records/list" Receive provider records and fetch them from local db, if available
 func recordListHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// TODO Improve this handler once ProvideManager gets exposed
@@ -213,4 +221,80 @@ func swarmPeersHandler(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request)
 
 		}
 	}
+}
+
+func ipnsEntries(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ds := hy.SharedDatastore
+		results, err := ds.Query(dsq.Query{Prefix: "/"})
+
+		// err := ds.Put(datastore.NewKey("/ipns"), )
+		if err != nil {
+			fmt.Printf("Error: %s\n", err)
+			w.WriteHeader(500)
+			return
+		}
+
+		enc := json.NewEncoder(w)
+
+		for result := range results.Next() {
+			// Base32 Encoding of /ipns is F5UXA3TT
+			if strings.HasPrefix(result.Key, "/F5UXA3TT") || strings.HasPrefix(result.Key, "/ipns") {
+				rec := new(recpb.Record)
+				err = proto.Unmarshal(result.Entry.Value, rec)
+				if err != nil {
+					fmt.Printf("Error: %s\n", err)
+					w.WriteHeader(500)
+					return
+				}
+
+				entry := new(pb.IpnsEntry)
+				err = proto.Unmarshal(rec.Value, entry)
+				if err != nil {
+					fmt.Printf("Error: %s\n", err)
+					w.WriteHeader(500)
+					return
+				}
+
+				_, pidString, err := record.SplitKey(string(rec.GetKey()))
+				if err != nil {
+					fmt.Printf("Error: %s\n", err)
+					w.WriteHeader(500)
+					return
+				}
+
+				pid, err := peer.IDFromString(pidString)
+				if err != nil {
+					fmt.Printf("Error: %s\n", err)
+					w.WriteHeader(500)
+					return
+				}
+
+				export := IpnsExportEntry{
+					Name:         pid,
+					Value:        string(entry.GetValue()),
+					Signature:    entry.GetSignature(),
+					ValidityType: entry.GetValidityType(),
+					Validity:     string(entry.GetValidity()),
+					Sequence:     entry.GetSequence(),
+					Ttl:          entry.GetTtl(),
+					PubKey:       entry.GetPubKey(),
+				}
+
+				enc.Encode(export)
+			}
+		}
+		results.Close()
+	}
+}
+
+type IpnsExportEntry struct {
+	Name         peer.ID
+	Value        string
+	Signature    []byte
+	ValidityType pb.IpnsEntry_ValidityType
+	Validity     string
+	Sequence     uint64
+	Ttl          uint64
+	PubKey       []byte
 }
