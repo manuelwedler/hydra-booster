@@ -6,26 +6,21 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/multiformats/go-multiaddr"
 
-	"github.com/gogo/protobuf/proto"
 	cid "github.com/ipfs/go-cid"
 	dsq "github.com/ipfs/go-datastore/query"
 
-	// ipns "github.com/ipfs/go-ipns"
-	pb "github.com/ipfs/go-ipns/pb"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
-	record "github.com/libp2p/go-libp2p-record"
-	recpb "github.com/libp2p/go-libp2p-record/pb"
 	"github.com/manuelwedler/hydra-booster/hydra"
 	"github.com/manuelwedler/hydra-booster/idgen"
+	"github.com/manuelwedler/hydra-booster/utils"
 )
 
 // ListenAndServe instructs a Hydra HTTP API server to listen and serve on the passed address
@@ -238,63 +233,11 @@ func ipnsEntries(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 		enc := json.NewEncoder(w)
 
 		for result := range results.Next() {
-			// Base32 Encoding of /ipns is F5UXA3TT
-			if strings.HasPrefix(result.Key, "/F5UXA3TT") || strings.HasPrefix(result.Key, "/ipns") {
-				rec := new(recpb.Record)
-				err = proto.Unmarshal(result.Entry.Value, rec)
-				if err != nil {
-					fmt.Printf("Error: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				entry := new(pb.IpnsEntry)
-				err = proto.Unmarshal(rec.Value, entry)
-				if err != nil {
-					fmt.Printf("Error: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				_, pidString, err := record.SplitKey(string(rec.GetKey()))
-				if err != nil {
-					fmt.Printf("Error: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				pid, err := peer.IDFromString(pidString)
-				if err != nil {
-					fmt.Printf("Error: %s\n", err)
-					w.WriteHeader(500)
-					return
-				}
-
-				export := IpnsExportEntry{
-					Name:         pid,
-					Value:        string(entry.GetValue()),
-					Signature:    entry.GetSignature(),
-					ValidityType: entry.GetValidityType(),
-					Validity:     string(entry.GetValidity()),
-					Sequence:     entry.GetSequence(),
-					Ttl:          entry.GetTtl(),
-					PubKey:       entry.GetPubKey(),
-				}
-
+			export, err := utils.NewIpnsExportEntry(result.Key, result.Entry.Value)
+			if err == nil {
 				enc.Encode(export)
 			}
 		}
 		results.Close()
 	}
-}
-
-type IpnsExportEntry struct {
-	Name         peer.ID
-	Value        string
-	Signature    []byte
-	ValidityType pb.IpnsEntry_ValidityType
-	Validity     string
-	Sequence     uint64
-	Ttl          uint64
-	PubKey       []byte
 }

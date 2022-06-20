@@ -2,7 +2,9 @@ package datastore
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -11,10 +13,17 @@ import (
 	"github.com/ipfs/go-cid"
 	"github.com/ipfs/go-datastore"
 	"github.com/ipfs/go-datastore/query"
+	leveldb "github.com/ipfs/go-ds-leveldb"
+	ipfsApi "github.com/ipfs/go-ipfs-http-client"
+	"github.com/ipfs/go-unixfs"
+	caopts "github.com/ipfs/interface-go-ipfs-core/options"
+	nsopts "github.com/ipfs/interface-go-ipfs-core/options/namesys"
 	"github.com/libp2p/go-libp2p-core/peer"
 	"github.com/libp2p/go-libp2p-core/routing"
 	"github.com/libp2p/go-libp2p-kad-dht/providers"
+	record "github.com/libp2p/go-libp2p-record"
 	"github.com/manuelwedler/hydra-booster/metrics"
+	"github.com/manuelwedler/hydra-booster/utils"
 	"github.com/multiformats/go-base32"
 	"github.com/whyrusleeping/timecache"
 	"go.opencensus.io/stats"
@@ -59,8 +68,8 @@ type findResult struct {
 	err      error
 }
 
-// NewProxy returns a new proxy to a datastore that adds hooks to perform hydra things
-func NewProxy(ctx context.Context, ds datastore.Batching, getRouting GetRoutingFunc, opts Options) datastore.Batching {
+// NewPrefetchProxy returns a new proxy to a datastore that adds hooks to perform hydra things
+func NewPrefetchProxy(ctx context.Context, ds datastore.Batching, getRouting GetRoutingFunc, opts Options) datastore.Batching {
 	if opts.FindProvidersConcurrency == 0 {
 		opts.FindProvidersConcurrency = findProvidersConcurrency
 	}
@@ -77,6 +86,14 @@ func NewProxy(ctx context.Context, ds datastore.Batching, getRouting GetRoutingF
 		opts.FindProvidersFailureBackoff = time.Minute
 	}
 	return hook.NewBatching(ds, hook.WithAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts)))
+}
+
+func NewIpnsProxy(ctx context.Context, ds datastore.Batching, dsPath string) (datastore.Batching, error) {
+	afterPut, err := newAfterPutIpnsHook(ctx, dsPath)
+	if err != nil {
+		return nil, err
+	}
+	return hook.NewBatching(ds, hook.WithAfterPut(afterPut)), nil
 }
 
 func newOnAfterQueryHook(ctx context.Context, getRouting GetRoutingFunc, opts Options) hook.AfterQueryFunc {
@@ -244,4 +261,90 @@ func recordFindProvsComplete(ctx context.Context, status string, extraMeasures .
 		[]tag.Mutator{tag.Upsert(metrics.KeyStatus, status)},
 		append([]stats.Measurement{metrics.FindProvs.M(1)}, extraMeasures...)...,
 	)
+}
+
+func newAfterPutIpnsHook(ctx context.Context, dsPath string) (hook.AfterPutFunc, error) {
+	exportDs, err := leveldb.NewDatastore(dsPath, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	ipfs, err := ipfsApi.NewLocalApi()
+	if err != nil {
+		return nil, err
+	}
+
+	dag := ipfs.Dag()
+	name := ipfs.Name()
+
+	return func(k datastore.Key, v []byte, err error) error {
+		if err != nil {
+			return err
+		}
+
+		export, err := utils.NewIpnsExportEntry(k.String(), v)
+
+		if err != nil {
+			fmt.Printf("Error during ipns export: %s\n", err)
+			return nil
+		}
+
+		t := time.Now()
+		export.ReceiveTime = t.Format(time.RFC3339)
+
+		if strings.HasPrefix(export.Value, "/ipfs") {
+			_, cidString, err := record.SplitKey(export.Value)
+			if err == nil {
+				cid, err := cid.Decode(cidString)
+				if err == nil {
+					dagCtx, cancel := context.WithDeadline(ctx, time.Now().Add(time.Minute))
+					defer cancel()
+					node, err := dag.Get(dagCtx, cid)
+					if err == nil {
+						fsNode, err := unixfs.FSNodeFromBytes(node.RawData())
+						if err == nil {
+							export.ContentType = fsNode.Type()
+						} else {
+							export.UnrecognizedType = true
+						}
+					} else {
+						export.ContentUnreachable = true
+					}
+				}
+			}
+		}
+
+		t = time.Now()
+		_, err = name.Resolve(ctx, export.Name.String(), caopts.Name.ResolveOption(nsopts.DhtTimeout(nsopts.DefaultResolveOpts().DhtTimeout)))
+		if err == nil {
+			export.NameResolveTime = time.Now().Sub(t).Milliseconds()
+		}
+
+		version := 0
+		var exportKey datastore.Key
+
+		for {
+			exportKey = datastore.NewKey(export.Name.String() + "/" + fmt.Sprint(version))
+			hasKey, err := exportDs.Has(exportKey)
+			if err != nil {
+				fmt.Printf("Error during ipns export: %s\n", err)
+				return nil
+			}
+			if !hasKey {
+				break
+			}
+			version++
+		}
+
+		data, err := json.Marshal(export)
+		if err != nil {
+			fmt.Printf("Error during ipns export: %s\n", err)
+			return nil
+		}
+		// Store it under key with and without version suffix
+		exportDs.Put(exportKey, data)
+		exportDs.Put(datastore.NewKey(export.Name.String()), data)
+
+		return nil
+	}, nil
 }

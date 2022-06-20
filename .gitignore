@@ -4,3 +4,4 @@ hydra-pstore
 coverage.txt
 prometheus-data
 secrets.yaml
+ipns-export

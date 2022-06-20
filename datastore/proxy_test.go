@@ -87,7 +87,7 @@ func TestNotFoundProvidersNetwork(t *testing.T) {
 		return dht, addProvider, nil
 	}
 
-	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
+	ds := NewPrefetchProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
@@ -148,7 +148,7 @@ func TestFoundProvidersNetwork(t *testing.T) {
 		return dht, addProvider, nil
 	}
 
-	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
+	ds := NewPrefetchProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	res, err := ds.Query(query.Query{Prefix: pfx})
@@ -179,7 +179,7 @@ func TestIgnoresNonProviderKeys(t *testing.T) {
 		return nil, nil, nil
 	}
 
-	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
+	ds := NewPrefetchProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	ds.Put(datastore.NewKey(pfx+"test"), []byte("test"))
@@ -213,7 +213,7 @@ func TestFoundProvidersLocal(t *testing.T) {
 		return nil, nil, nil
 	}
 
-	ds := NewProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
+	ds := NewPrefetchProxy(ctx, datastore.NewMapDatastore(), getRouting, Options{})
 	defer ds.Close()
 
 	ds.Put(datastore.NewKey(pfx+"/test"), []byte("test"))

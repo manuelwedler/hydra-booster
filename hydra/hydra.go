@@ -66,6 +66,8 @@ type Options struct {
 	DisablePrefetch   bool
 	DisableProvCounts bool
 	DisableDBCreate   bool
+	DisableIpnsExport bool
+	IpnsExportPath    string
 }
 
 // NewHydra creates a new Hydra with the passed options.
@@ -94,7 +96,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	var hds []*head.Head
 
 	if !options.DisablePrefetch {
-		ds = hyds.NewProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
+		ds = hyds.NewPrefetchProxy(ctx, ds, func(_ cid.Cid) (routing.Routing, hyds.AddProviderFunc, error) {
 			if len(hds) == 0 {
 				return nil, nil, fmt.Errorf("no heads available")
 			}
@@ -108,6 +110,13 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			FindProvidersTimeout:        time.Second * 20,
 			FindProvidersFailureBackoff: time.Hour,
 		})
+	}
+
+	if !options.DisableIpnsExport {
+		ds, err = hyds.NewIpnsProxy(ctx, ds, options.IpnsExportPath)
+		if err != nil {
+			return nil, fmt.Errorf("failed to create ipns export hook: %w", err)
+		}
 	}
 
 	if options.PeerstorePath == "" {

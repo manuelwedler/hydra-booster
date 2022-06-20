@@ -56,6 +56,8 @@ func main() {
 	disablePrefetch := flag.Bool("disable-prefetch", false, "Disables pre-fetching of discovered provider records (default false).")
 	disableProvCounts := flag.Bool("disable-prov-counts", false, "Disable counting provider records for metrics reporting (default false).")
 	disableDBCreate := flag.Bool("disable-db-create", false, "Don't create table and index in the target database (default false).")
+	disableIpnsExport := flag.Bool("disable-ipns-export", false, "Disables exporting ipns data (default false).")
+	ipnsExportPath := flag.String("ipns-export-path", "", "Datastore directory (for LevelDB store) for exporting ipns names and metrics about them")
 	flag.Parse()
 
 	fmt.Fprintf(os.Stderr, "🐉 Hydra Booster starting up...\n")
@@ -94,6 +96,15 @@ func main() {
 	}
 	if !*disableProvCounts {
 		*disableProvCounts = mustGetEnvBool("HYDRA_DISABLE_PROV_COUNTS", false)
+	}
+	if !*disableIpnsExport {
+		*disableIpnsExport = mustGetEnvBool("HYDRA_DISABLE_IPNS_EXPORT", false)
+	}
+	if *ipnsExportPath == "" {
+		*ipnsExportPath = os.Getenv("HYDRA_IPNS_EXPORT_PATH")
+		if *ipnsExportPath == "" {
+			*ipnsExportPath = "ipns-export"
+		}
 	}
 	if *pstorePath == "" {
 		*pstorePath = os.Getenv("HYDRA_PSTORE")
@@ -140,6 +151,8 @@ func main() {
 		DisablePrefetch:   *disablePrefetch,
 		DisableProvCounts: *disableProvCounts,
 		DisableDBCreate:   *disableDBCreate,
+		DisableIpnsExport: *disableIpnsExport,
+		IpnsExportPath:    *ipnsExportPath,
 	}
 
 	go func() {
