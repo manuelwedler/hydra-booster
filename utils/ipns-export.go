@@ -17,16 +17,16 @@ type IpnsExportEntry struct {
 	Name               peer.ID
 	Value              string
 	Signature          []byte
-	ValidityType       ipnsPb.IpnsEntry_ValidityType
-	Validity           string
-	Sequence           uint64
-	Ttl                uint64
-	PubKey             []byte
-	ReceiveTime        string
-	ContentUnreachable bool
-	ContentType        unixfsPb.Data_DataType
-	UnrecognizedType   bool
-	NameResolveTime    int64
+	ValidityType       ipnsPb.IpnsEntry_ValidityType `json:",omitempty"`
+	Validity           string                        `json:",omitempty"`
+	Sequence           uint64                        `json:",omitempty"`
+	Ttl                uint64                        `json:",omitempty"`
+	PubKey             []byte                        `json:",omitempty"`
+	ReceiveTime        string                        `json:",omitempty"`
+	ContentUnreachable bool                          `json:",omitempty"`
+	ContentType        unixfsPb.Data_DataType        `json:",omitempty"`
+	UnrecognizedType   bool                          `json:",omitempty"`
+	NameResolveTime    int64                         `json:",omitempty"`
 }
 
 func NewIpnsExportEntry(key string, value []byte) (IpnsExportEntry, error) {
