@@ -196,10 +196,12 @@ func main() {
 	}()
 	fmt.Fprintf(os.Stderr, "🧩 HTTP API listening on http://%s\n", *httpAPIAddr)
 
+	writeCurrentDate()
 	termChan := make(chan os.Signal, 1)
 	signal.Notify(termChan, os.Interrupt, syscall.SIGTERM)
 	<-termChan // Blocks here until either SIGINT or SIGTERM is received.
 	fmt.Println("Received interrupt signal, shutting down...")
+	writeCurrentDate()
 }
 
 func mustGetEnvInt(key string, def int) int {
@@ -237,4 +239,17 @@ func mustConvertToMultiaddr(csv string) []multiaddr.Multiaddr {
 		}
 	}
 	return peers
+}
+
+func writeCurrentDate() {
+	f, err := os.OpenFile("timing.txt", os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0664)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	if _, err = f.WriteString(time.Now().Format(time.RFC3339) + "\n"); err != nil {
+		panic(err)
+	}
 }

@@ -5,3 +5,4 @@ coverage.txt
 prometheus-data
 secrets.yaml
 ipns-export
+timing.txt
