@@ -207,6 +207,8 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 	}
 	fmt.Fprintf(os.Stderr, "\n")
 
+	writeHeadIds(hds)
+
 	for _, hd := range hds {
 		fmt.Fprintf(os.Stderr, "🆔 %v\n", hd.Host.ID())
 		for _, addr := range hd.Host.Addrs() {
@@ -251,4 +253,19 @@ func (hy *Hydra) GetUniquePeersCount() uint64 {
 	hy.hyperLock.Lock()
 	defer hy.hyperLock.Unlock()
 	return hy.hyperlog.Estimate()
+}
+
+func writeHeadIds(hds []*head.Head) {
+	f, err := os.OpenFile("heads.txt", os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0664)
+	if err != nil {
+		panic(err)
+	}
+
+	defer f.Close()
+
+	for _, hd := range hds {
+		if _, err = f.WriteString(hd.Host.ID().Pretty() + "\n"); err != nil {
+			panic(err)
+		}
+	}
 }

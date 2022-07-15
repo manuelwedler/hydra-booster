@@ -6,3 +6,4 @@ prometheus-data
 secrets.yaml
 ipns-export
 timing.txt
+heads.txt
