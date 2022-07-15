@@ -27,6 +27,7 @@ type IpnsExportEntry struct {
 	ContentType        unixfsPb.Data_DataType        `json:",omitempty"`
 	UnrecognizedType   bool                          `json:",omitempty"`
 	NameResolveTime    int64                         `json:",omitempty"`
+	ReceivingHead      peer.ID                       `json:",omitempty"`
 }
 
 func NewIpnsExportEntry(key string, value []byte) (IpnsExportEntry, error) {

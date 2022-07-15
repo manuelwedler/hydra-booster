@@ -88,8 +88,8 @@ func NewPrefetchProxy(ctx context.Context, ds datastore.Batching, getRouting Get
 	return hook.NewBatching(ds, hook.WithAfterQuery(newOnAfterQueryHook(ctx, getRouting, opts)))
 }
 
-func NewIpnsProxy(ctx context.Context, ds datastore.Batching, dsPath string) (datastore.Batching, error) {
-	afterPut, err := newAfterPutIpnsHook(ctx, dsPath)
+func NewIpnsProxy(ctx context.Context, ds datastore.Batching, exportDs leveldb.Datastore, headId peer.ID) (datastore.Batching, error) {
+	afterPut, err := newAfterPutIpnsHook(ctx, exportDs, headId)
 	if err != nil {
 		return nil, err
 	}
@@ -263,12 +263,7 @@ func recordFindProvsComplete(ctx context.Context, status string, extraMeasures .
 	)
 }
 
-func newAfterPutIpnsHook(ctx context.Context, dsPath string) (hook.AfterPutFunc, error) {
-	exportDs, err := leveldb.NewDatastore(dsPath, nil)
-	if err != nil {
-		return nil, err
-	}
-
+func newAfterPutIpnsHook(ctx context.Context, exportDs leveldb.Datastore, headId peer.ID) (hook.AfterPutFunc, error) {
 	ipfs, err := ipfsApi.NewLocalApi()
 	if err != nil {
 		return nil, err
@@ -319,6 +314,8 @@ func newAfterPutIpnsHook(ctx context.Context, dsPath string) (hook.AfterPutFunc,
 		if err == nil {
 			export.NameResolveTime = time.Now().Sub(t).Milliseconds()
 		}
+
+		export.ReceivingHead = headId
 
 		version := 0
 		var exportKey datastore.Key

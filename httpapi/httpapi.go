@@ -223,7 +223,6 @@ func ipnsEntries(hy *hydra.Hydra) func(http.ResponseWriter, *http.Request) {
 		ds := hy.SharedDatastore
 		results, err := ds.Query(dsq.Query{Prefix: "/"})
 
-		// err := ds.Put(datastore.NewKey("/ipns"), )
 		if err != nil {
 			fmt.Printf("Error: %s\n", err)
 			w.WriteHeader(500)

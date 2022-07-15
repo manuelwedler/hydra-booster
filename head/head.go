@@ -24,6 +24,7 @@ import (
 	record "github.com/libp2p/go-libp2p-record"
 	tls "github.com/libp2p/go-libp2p-tls"
 	"github.com/libp2p/go-tcp-transport"
+	hyds "github.com/manuelwedler/hydra-booster/datastore"
 	"github.com/manuelwedler/hydra-booster/head/opts"
 	"github.com/manuelwedler/hydra-booster/version"
 	"github.com/multiformats/go-multiaddr"
@@ -93,11 +94,19 @@ func NewHead(ctx context.Context, options ...opts.Option) (*Head, chan Bootstrap
 		return nil, nil, fmt.Errorf("failed to spawn libp2p node: %w", err)
 	}
 
+	ds := cfg.Datastore
+	if !cfg.DisableIpnsExport {
+		ds, err = hyds.NewIpnsProxy(ctx, cfg.Datastore, cfg.IpnsExportDatastore, node.ID())
+		if err != nil {
+			return nil, nil, fmt.Errorf("failed to create ipns export hook: %w", err)
+		}
+	}
+
 	dhtOpts := []dht.Option{
 		dht.Mode(dht.ModeServer),
 		dht.ProtocolPrefix(cfg.ProtocolPrefix),
 		dht.BucketSize(cfg.BucketSize),
-		dht.Datastore(cfg.Datastore),
+		dht.Datastore(ds),
 		dht.QueryFilter(dht.PublicQueryFilter),
 		dht.RoutingTableFilter(dht.PublicRoutingTableFilter),
 	}

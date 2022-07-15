@@ -112,13 +112,6 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		})
 	}
 
-	if !options.DisableIpnsExport {
-		ds, err = hyds.NewIpnsProxy(ctx, ds, options.IpnsExportPath)
-		if err != nil {
-			return nil, fmt.Errorf("failed to create ipns export hook: %w", err)
-		}
-	}
-
 	if options.PeerstorePath == "" {
 		fmt.Fprintf(os.Stderr, "💭 Using in-memory peerstore\n")
 	} else {
@@ -132,6 +125,11 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 
 	// What is a limiter?
 	limiter := make(chan struct{}, options.BsCon)
+
+	ipnsExportDs, err := leveldb.NewDatastore(options.IpnsExportPath, nil)
+	if err != nil {
+		return nil, err
+	}
 
 	for i := 0; i < options.NHeads; i++ {
 		time.Sleep(options.Stagger)
@@ -149,6 +147,7 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 			opts.Limiter(limiter),
 			opts.IDGenerator(options.IDGenerator),
 			opts.BootstrapPeers(options.BootstrapPeers),
+			opts.IpnsExportDatastore(*ipnsExportDs),
 		}
 		if options.EnableRelay {
 			hdOpts = append(hdOpts, opts.EnableRelay())
@@ -162,6 +161,9 @@ func NewHydra(ctx context.Context, options Options) (*Hydra, error) {
 		}
 		if options.DisableValues {
 			hdOpts = append(hdOpts, opts.DisableValues())
+		}
+		if options.DisableIpnsExport {
+			hdOpts = append(hdOpts, opts.DisableIpnsExport())
 		}
 		if options.PeerstorePath != "" {
 			pstoreDs, err := leveldb.NewDatastore(fmt.Sprintf("%s/head-%d", options.PeerstorePath, i), nil)

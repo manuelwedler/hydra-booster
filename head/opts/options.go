@@ -5,6 +5,7 @@ import (
 
 	ds "github.com/ipfs/go-datastore"
 	dssync "github.com/ipfs/go-datastore/sync"
+	leveldb "github.com/ipfs/go-ds-leveldb"
 	"github.com/libp2p/go-libp2p-core/peerstore"
 	"github.com/libp2p/go-libp2p-core/protocol"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
@@ -15,19 +16,21 @@ import (
 
 // Options are Hydra Head options
 type Options struct {
-	Datastore        ds.Batching
-	Peerstore        peerstore.Peerstore
-	RoutingTable     *kbucket.RoutingTable
-	EnableRelay      bool
-	Addrs            []multiaddr.Multiaddr
-	ProtocolPrefix   protocol.ID
-	BucketSize       int
-	Limiter          chan struct{}
-	BootstrapPeers   []multiaddr.Multiaddr
-	IDGenerator      idgen.IdentityGenerator
-	DisableProvGC    bool
-	DisableProviders bool
-	DisableValues    bool
+	Datastore           ds.Batching
+	Peerstore           peerstore.Peerstore
+	RoutingTable        *kbucket.RoutingTable
+	EnableRelay         bool
+	Addrs               []multiaddr.Multiaddr
+	ProtocolPrefix      protocol.ID
+	BucketSize          int
+	Limiter             chan struct{}
+	BootstrapPeers      []multiaddr.Multiaddr
+	IDGenerator         idgen.IdentityGenerator
+	DisableProvGC       bool
+	DisableProviders    bool
+	DisableValues       bool
+	DisableIpnsExport   bool
+	IpnsExportDatastore leveldb.Datastore
 }
 
 // Option is the Hydra Head option type.
@@ -178,6 +181,24 @@ func DisableProviders() Option {
 func DisableValues() Option {
 	return func(o *Options) error {
 		o.DisableValues = true
+		return nil
+	}
+}
+
+// DisableIpnsExport disables exportin ipns records with metadata in a separate DB.
+// The default value is false.
+func DisableIpnsExport() Option {
+	return func(o *Options) error {
+		o.DisableIpnsExport = true
+		return nil
+	}
+}
+
+// IpnsExportDatastore configures the DB where the ipns records are exported.
+// Defaults no export datastore.
+func IpnsExportDatastore(exportDs leveldb.Datastore) Option {
+	return func(o *Options) error {
+		o.IpnsExportDatastore = exportDs
 		return nil
 	}
 }
