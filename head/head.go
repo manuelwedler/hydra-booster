@@ -31,8 +31,8 @@ import (
 )
 
 const (
-	lowWater               = 1200
-	highWater              = 1800
+	lowWater               = 60
+	highWater              = 90
 	gracePeriod            = time.Minute
 	provDisabledGCInterval = time.Hour * 24 * 365 * 100 // set really high to be "disabled"
 	provCacheSize          = 256
